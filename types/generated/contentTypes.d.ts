@@ -368,14 +368,15 @@ export interface ApiEmployeeEmployee extends Schema.CollectionType {
     singularName: 'employee';
     pluralName: 'employees';
     displayName: 'Employee';
+    description: '';
   };
   options: {
     draftAndPublish: true;
   };
   attributes: {
-    Name: Attribute.String;
-    Designation: Attribute.String;
-    City: Attribute.String;
+    name: Attribute.String;
+    designation: Attribute.String;
+    city: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
