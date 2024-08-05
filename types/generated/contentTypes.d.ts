@@ -362,35 +362,26 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
-export interface ApiEmployeeEmployee extends Schema.CollectionType {
-  collectionName: 'employees';
+export interface ApiTreeTree extends Schema.CollectionType {
+  collectionName: 'trees';
   info: {
-    singularName: 'employee';
-    pluralName: 'employees';
-    displayName: 'Employee';
+    singularName: 'tree';
+    pluralName: 'trees';
+    displayName: 'Tree';
     description: '';
   };
   options: {
     draftAndPublish: true;
   };
   attributes: {
-    name: Attribute.String;
-    designation: Attribute.String;
-    city: Attribute.String;
+    node: Attribute.String;
+    parent: Attribute.Relation<'api::tree.tree', 'oneToOne', 'api::tree.tree'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::employee.employee',
-      'oneToOne',
-      'admin::user'
-    > &
+    createdBy: Attribute.Relation<'api::tree.tree', 'oneToOne', 'admin::user'> &
       Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::employee.employee',
-      'oneToOne',
-      'admin::user'
-    > &
+    updatedBy: Attribute.Relation<'api::tree.tree', 'oneToOne', 'admin::user'> &
       Attribute.Private;
   };
 }
@@ -831,7 +822,7 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
-      'api::employee.employee': ApiEmployeeEmployee;
+      'api::tree.tree': ApiTreeTree;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;

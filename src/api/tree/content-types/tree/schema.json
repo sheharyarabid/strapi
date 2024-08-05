@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "trees",
+  "info": {
+    "singularName": "tree",
+    "pluralName": "trees",
+    "displayName": "Tree",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "node": {
+      "type": "string"
+    },
+    "parent": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::tree.tree"
+    }
+  }
+}

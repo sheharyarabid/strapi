@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * employee router
+ * tree router
  */
 
 const { createCoreRouter } = require('@strapi/strapi').factories;
 
-module.exports = createCoreRouter('api::employee.employee');
+module.exports = createCoreRouter('api::tree.tree');
