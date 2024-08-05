@@ -12,7 +12,7 @@ module.exports = {
           populate: { parent: true },
         });
   
-        console.log(nodes);
+       
         // Transform data into a tree structure
         const map = new Map();
   
