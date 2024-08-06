@@ -24,14 +24,14 @@ module.exports = {
     //     middlewares: [],
     //   },
     // },
-    // {
-    //   method: 'DELETE',
-    //   path: '/custom-api/:id',
-    //   handler: 'custom-api.delete',
-    //   config: {
-    //     policies: [],
-    //     middlewares: [],
-    //   },
-    // },
+    {
+      method: 'DELETE',
+      path: '/tree/delete/:id',
+      handler: 'custom-api.delete',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };
