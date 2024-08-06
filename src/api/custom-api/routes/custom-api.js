@@ -15,6 +15,15 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'PATCH',
+      path: '/tree/update/:id',
+      handler: 'custom-api.update',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
     // {
     //   method: 'PUT',
     //   path: '/custom-api/:id',

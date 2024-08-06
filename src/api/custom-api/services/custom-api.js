@@ -33,9 +33,10 @@ module.exports = {
     }
   },
 
-  async update(params, data) {
-    // @ts-ignore
-    return strapi.query('custom-api').update(params, data);
+  async update(ctx) {
+    const { id } = ctx.params;
+    await strapi.entityService.update('api::tree.tree', id, ctx.request.body);
+    return { message: `Node deleted: ID: ${id}` };
   },
 
   async delete(ctx) {

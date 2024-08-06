@@ -59,16 +59,51 @@ module.exports = {
 
 
 
-  // async update(ctx) {
-  //   try {
-  //     const { id } = ctx.params;
-  //     const data = ctx.request.body;
-  //     const updatedEntity = await strapi.services['custom-api'].update({ id }, data);
-  //     return ctx.send(updatedEntity);
-  //   } catch (err) {
-  //     ctx.throw(400, err);
-  //   }
-  // },
+  async update(ctx) {
+    const { id } = ctx.params;
+    const { node, parent } = ctx.request.body;
+  
+    console.log('Updating node with ID:', id);
+    console.log('Node data:', node);
+    console.log('Parent ID:', parent);
+  
+    try {
+      // Validate the input data
+      if (!node) {
+        return ctx.badRequest('Missing required field: node');
+      }
+  
+      let parentId = null;
+      if (parent) {
+        parentId = parseInt(parent, 10);
+        if (isNaN(parentId)) {
+          return ctx.badRequest('Invalid parent ID');
+        }
+  
+        // Optionally, check if the parent ID exists in the database
+        const parentNode = await strapi.entityService.findOne('api::tree.tree', parentId);
+        if (!parentNode) {
+          return ctx.badRequest('Parent node does not exist');
+        }
+      }
+  
+      // Update the node
+      const updatedNode = await strapi.entityService.update('api::tree.tree', id, {
+        data: {
+          node,
+          parent: parentId ? parentId : null,
+        },
+      });
+  
+      return ctx.send(updatedNode);
+    } catch (error) {
+      console.error('Error updating node:', error);
+      return ctx.internalServerError('Failed to update node', {
+        error: error.message,
+        details: error.details,
+      });
+    }
+  },
 
   async delete(ctx) {
     const { id } = ctx.params;
