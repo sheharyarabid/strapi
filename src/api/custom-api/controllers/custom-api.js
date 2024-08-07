@@ -1,15 +1,14 @@
 
 module.exports = {
-
   async get(ctx) {
     try {
       const data = await strapi.service('api::custom-api.custom-api').getNodes();
-      ctx.send(data);
+      console.log('Data:', data);
+      return ctx.send(data);
     } catch (error) {
       ctx.send({ message: `we got error ${error.message}` });
     }
   },
-
   async create(ctx) {
     try {
       const { node, parent } = ctx.request.body;
@@ -55,10 +54,6 @@ module.exports = {
       });
     }
   },
-
-
-
-
   async update(ctx) {
     const { id } = ctx.params;
     const { node, parent } = ctx.request.body;
@@ -107,7 +102,6 @@ module.exports = {
       });
     }
   },
-
   async delete(ctx) {
     const { id } = ctx.params;
     // Recursive function to delete children
