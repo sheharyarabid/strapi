@@ -36,7 +36,7 @@ module.exports = {
   async update(ctx) {
     const { id } = ctx.params;
     await strapi.entityService.update('api::tree.tree', id, ctx.request.body);
-    return { message: `Node deleted: ID: ${id}` };
+    return { message: `Node Updated: ID: ${id}` };
   },
 
   async delete(ctx) {

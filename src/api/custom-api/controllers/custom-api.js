@@ -94,8 +94,11 @@ module.exports = {
           parent: parentId ? parentId : null,
         },
       });
-  
-      return ctx.send(updatedNode);
+      const response = {
+        ...updatedNode,
+        parentId: parentId
+      };
+      return ctx.send(response);
     } catch (error) {
       console.error('Error updating node:', error);
       return ctx.internalServerError('Failed to update node', {
