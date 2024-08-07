@@ -6,6 +6,7 @@ module.exports = {
       path: '/tree/get',
       handler: 'custom-api.get',
     },
+    
     {
       method: 'POST',
       path: '/tree/create',
