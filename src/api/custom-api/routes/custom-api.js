@@ -6,6 +6,15 @@ module.exports = {
       path: '/tree/get',
       handler: 'custom-api.get',
     },
+    {
+      method: 'GET',
+      path: '/custom-api/getPage',
+      handler: 'custom-api.getPage',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
     
     {
       method: 'POST',

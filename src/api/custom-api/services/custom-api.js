@@ -33,10 +33,23 @@ module.exports = {
     }
   },
 
+  async getNodesPage(page, level) {
+    try {
+      const nodes = await strapi.entityService.findMany('api::tree.tree', {
+        start: page * 10,
+        _limit: 10,
+        parent: level === 0 ? null : level,
+      });
+      return nodes;
+    } catch (err) {
+      throw new Error('Error fetching nodes');
+    }
+  },
+
   async update(ctx) {
     const { id } = ctx.params;
     await strapi.entityService.update('api::tree.tree', id, ctx.request.body);
-    return { message: `Node Updated: ID: ${id}` };
+    return { message: `Node deleted: ID: ${id}` };
   },
 
   async delete(ctx) {
