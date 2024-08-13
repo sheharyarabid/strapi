@@ -8,13 +8,22 @@ module.exports = {
     },
     {
       method: 'GET',
-      path: '/custom-api/getPage',
-      handler: 'custom-api.getPage',
+      path: '/tree/getfilter',
+      handler: 'custom-api.filter',
       config: {
         policies: [],
         middlewares: [],
       },
     },
+    // {
+    //   method: 'GET',
+    //   path: '/custom-api/getPage',
+    //   handler: 'custom-api.getPage',
+    //   config: {
+    //     policies: [],
+    //     middlewares: [],
+    //   },
+    // },
     
     {
       method: 'POST',
@@ -34,15 +43,7 @@ module.exports = {
         middlewares: [],
       },
     },
-    // {
-    //   method: 'PUT',
-    //   path: '/custom-api/:id',
-    //   handler: 'custom-api.update',
-    //   config: {
-    //     policies: [],
-    //     middlewares: [],
-    //   },
-    // },
+   
     {
       method: 'DELETE',
       path: '/tree/delete/:id',

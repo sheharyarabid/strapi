@@ -17,7 +17,7 @@ module.exports = {
       const level = parseInt(ctx.query.level, 10) || 0;
       
       // Fetch data using the service
-      const data = await strapi.service('api::custom-api.custom-api').getNodesPage(page, level);
+      const data = await strapi.service('api::custom-api.custom-api').getNodes(page, level);
 
       // Return the data
       return ctx.send(data);
@@ -93,7 +93,7 @@ module.exports = {
       if (parent) {
         parentId = parseInt(parent, 10);
         if (isNaN(parentId)) {
-          return ctx.badRequest('Invalid parent ID');
+          return ctx.badRequest('Invalid parent');
         }
   
         // Optionally, check if the parent ID exists in the database
@@ -143,5 +143,87 @@ module.exports = {
     // Delete the parent node
     await strapi.entityService.delete('api::tree.tree', id);
     return { message: 'Node and its children deleted' };
+  },
+
+  // async filter(ctx) {
+  //   try {
+  //     const { key } = ctx.query;
+  
+  //     if (!key) {
+  //       return ctx.badRequest('Missing required field: key');
+  //     }
+  
+  //     // Fetch nodes and ancestors based on the key
+  //     const { data } = await strapi.service('api::custom-api.custom-api').getNodesByFilter(key);
+  
+  //     // Return the hierarchical data
+  //     return ctx.send({ data });
+  //   } catch (error) {
+  //     console.error('Error filtering data:', error);
+  //     return ctx.internalServerError('An error occurred while filtering data.');
+  //   }
+  // }
+  
+  async filter(ctx) {
+    try {
+      // Extract filtering criteria from query parameters
+      const { filter } = ctx.query;
+      // Construct the query options
+      const queryOptions = {
+        populate: { parent: true }, // Ensure the 'node' relation is populated
+        ...(filter && { filters: { node: { $containsi: filter } } }), // Apply filter if provided
+      };
+
+      // Fetch the nodes data with parent relations populated
+      const nodes = await strapi.entityService.findMany(
+        "api::tree.tree",
+        queryOptions
+      );
+      console.log(nodes);
+
+      // Create a set to store all relevant nodes, including ancestors
+      const allNodes = new Set();
+
+      // Recursive function to gather all ancestor nodes
+      const gatherAncestors = async (parent) => {
+        if (parent && !allNodes.has(parent.id)) {
+          allNodes.add(parent.id);
+          if (parent.parent) {
+            // Fetch parent node details
+            const parentNode = await strapi.entityService.findOne(
+              "api::tree.tree",
+              parent.parent.id,
+              { populate: { parent: true } } // Ensure parent relation is populated
+            );
+            if (parentNode) {
+              await gatherAncestors(parentNode); // Recursively gather ancestors
+            }
+          }
+        }
+      };
+
+      // Process each node to gather its ancestors
+      await Promise.all(nodes.map((node) => gatherAncestors(node)));
+
+      // Fetch all relevant nodes, including ancestors
+      const allRelevantNodes = await strapi.entityService.findMany(
+        "api::tree.tree",
+        {
+          filters: { id: { $in: Array.from(allNodes) } }, // Filter nodes by gathered IDs
+          populate: { parent: true }, // Ensure all nodes' relations are populated
+        }
+      );
+
+      // Send the fetched nodes with their relations as response
+      ctx.body = { nodes: allRelevantNodes };
+    } catch (error) {
+      strapi.log.error("Error fetching data:", error); // Log any error that occurs
+      ctx.status = 500; // Set status code to 500 for server errors
+      ctx.body = { error: "Failed to fetch data" }; // Send error response
+    }
   }
+  
+  
+
+  
 };
