@@ -8,23 +8,22 @@ module.exports = {
     },
     {
       method: 'GET',
-      path: '/tree/getfilter',
+      path: '/tree/getfilter/',
       handler: 'custom-api.filter',
       config: {
         policies: [],
         middlewares: [],
       },
-    },
+    },    
     // {
     //   method: 'GET',
-    //   path: '/custom-api/getPage',
+    //   path: '/tree/getpage',
     //   handler: 'custom-api.getPage',
     //   config: {
     //     policies: [],
     //     middlewares: [],
     //   },
-    // },
-    
+    // },    
     {
       method: 'POST',
       path: '/tree/create',

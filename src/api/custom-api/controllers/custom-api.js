@@ -4,25 +4,10 @@ module.exports = {
   async get(ctx) {
     try {
       const data = await strapi.service('api::custom-api.custom-api').getNodes();
-      console.log('Data:', data);
+      // console.log('Data:', data);
       return ctx.send(data);
     } catch (error) {
       ctx.send({ message: `we got error ${error.message}` });
-    }
-  },
-  async getPage(ctx) {
-    try {
-      // Extract query parameters with default values
-      const page = parseInt(ctx.query.page, 10) || 0;
-      const level = parseInt(ctx.query.level, 10) || 0;
-      
-      // Fetch data using the service
-      const data = await strapi.service('api::custom-api.custom-api').getNodes(page, level);
-
-      // Return the data
-      return ctx.send(data);
-    } catch (error) {
-      ctx.throw(500, `Error: ${error.message}`);
     }
   },
 
@@ -78,10 +63,6 @@ module.exports = {
   async update(ctx) {
     const { id } = ctx.params;
     const { node, parent } = ctx.request.body;
-  
-    console.log('Updating node with ID:', id);
-    console.log('Node data:', node);
-    console.log('Parent ID:', parent);
   
     try {
       // Validate the input data
@@ -144,34 +125,45 @@ module.exports = {
     await strapi.entityService.delete('api::tree.tree', id);
     return { message: 'Node and its children deleted' };
   },
+  
 
-  // async filter(ctx) {
-  //   try {
-  //     const { key } = ctx.query;
   
-  //     if (!key) {
-  //       return ctx.badRequest('Missing required field: key');
-  //     }
-  
-  //     // Fetch nodes and ancestors based on the key
-  //     const { data } = await strapi.service('api::custom-api.custom-api').getNodesByFilter(key);
-  
-  //     // Return the hierarchical data
-  //     return ctx.send({ data });
-  //   } catch (error) {
-  //     console.error('Error filtering data:', error);
-  //     return ctx.internalServerError('An error occurred while filtering data.');
-  //   }
-  // }
   
   async filter(ctx) {
     try {
-      // Extract filtering criteria from query parameters
-      const { filter } = ctx.query;
+      let { filter, parentId } = ctx.query;
+
+      if (parentId) {
+        // Fetch child nodes for the given parentId
+        const childNodes = await strapi.entityService.findMany('api::tree.tree', {
+          filters: { parent: parentId },
+          populate: { parent: true },
+        });
+
+        // Create a map to store child nodes
+        const nodeMap = new Map();
+        childNodes.forEach((node) => {
+          nodeMap.set(node.id, { ...node, childrenLength: 0 });
+        });
+
+        // Count children for each node
+        for (const node of nodeMap.values()) {
+          // Fetch all direct children of the current node
+          const children = await strapi.entityService.findMany('api::tree.tree', {
+            filters: { parent: node.id },
+          });
+          node.childrenLength = children.length; // Set the count of direct children
+        }
+
+        ctx.body = { nodes: Array.from(nodeMap.values()) };
+        return;
+      }
+
       // Construct the query options
       const queryOptions = {
-        populate: { parent: true }, // Ensure the 'node' relation is populated
-        ...(filter && { filters: { node: { $containsi: filter } } }), // Apply filter if provided
+        filters: { parent: null },
+        populate: { parent: true },
+        ...(filter && { filters: { node: { $containsi: filter } } }),
       };
 
       // Fetch the nodes data with parent relations populated
@@ -179,7 +171,6 @@ module.exports = {
         "api::tree.tree",
         queryOptions
       );
-      console.log(nodes);
 
       // Create a set to store all relevant nodes, including ancestors
       const allNodes = new Set();
@@ -189,14 +180,13 @@ module.exports = {
         if (parent && !allNodes.has(parent.id)) {
           allNodes.add(parent.id);
           if (parent.parent) {
-            // Fetch parent node details
             const parentNode = await strapi.entityService.findOne(
               "api::tree.tree",
               parent.parent.id,
-              { populate: { parent: true } } // Ensure parent relation is populated
+              { populate: { parent: true } }
             );
             if (parentNode) {
-              await gatherAncestors(parentNode); // Recursively gather ancestors
+              await gatherAncestors(parentNode);
             }
           }
         }
@@ -206,24 +196,35 @@ module.exports = {
       await Promise.all(nodes.map((node) => gatherAncestors(node)));
 
       // Fetch all relevant nodes, including ancestors
-      const allRelevantNodes = await strapi.entityService.findMany(
+      const relevantNodes = await strapi.entityService.findMany(
         "api::tree.tree",
         {
-          filters: { id: { $in: Array.from(allNodes) } }, // Filter nodes by gathered IDs
-          populate: { parent: true }, // Ensure all nodes' relations are populated
+          filters: { id: { $in: Array.from(allNodes) } },
+          populate: { parent: true },
         }
       );
 
-      // Send the fetched nodes with their relations as response
-      ctx.body = { nodes: allRelevantNodes };
-    } catch (error) {
-      strapi.log.error("Error fetching data:", error); // Log any error that occurs
-      ctx.status = 500; // Set status code to 500 for server errors
-      ctx.body = { error: "Failed to fetch data" }; // Send error response
-    }
-  }
-  
-  
+      // Map nodes to their IDs
+      const nodeMap = new Map();
+      relevantNodes.forEach((node) => {
+        nodeMap.set(node.id, { ...node, childrenLength: 0 });
+      });
 
-  
+      // Build the tree structure and count children
+      for (const node of nodeMap.values()) {
+        // Fetch all direct children of the current node
+        const children = await strapi.entityService.findMany('api::tree.tree', {
+          filters: { parent: node.id },
+        });
+        node.childrenLength = children.length; // Set the count of direct children
+      }
+
+      // Send the fetched nodes with their relations and child counts as response
+      ctx.body = { nodes: Array.from(nodeMap.values()) };
+    } catch (error) {
+      strapi.log.error("Error fetching data:", error);
+      ctx.status = 500;
+      ctx.body = { error: "Failed to fetch data" };
+    }
+  },
 };
