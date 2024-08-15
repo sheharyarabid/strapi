@@ -57,9 +57,6 @@ module.exports = {
     }
   },
 
-
-
-
   async update(ctx) {
     const { id } = ctx.params;
     const { node, parent } = ctx.request.body;
@@ -125,10 +122,7 @@ module.exports = {
     await strapi.entityService.delete('api::tree.tree', id);
     return { message: 'Node and its children deleted' };
   },
-  
 
-  
-  
   async filter(ctx) {
     try {
       let { filter, parentId } = ctx.query;
@@ -227,4 +221,5 @@ module.exports = {
       ctx.body = { error: "Failed to fetch data" };
     }
   },
+  
 };
