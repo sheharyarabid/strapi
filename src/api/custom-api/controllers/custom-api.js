@@ -155,10 +155,16 @@ module.exports = {
 
       // Construct the query options
       const queryOptions = {
-        filters: { parent: null },
+        filters: { parent: null }, //gets root nodes if filter value is Fasly
         populate: { parent: true },
-        ...(filter && { filters: { node: { $containsi: filter } } }),
+        ...(filter && { filters: { node: { $containsi: filter } } }), 
+          // gets filtered nodes if filter value is Truthy
       };
+
+      // const queryOptions = {
+      //   filters: { node: { $containsi: filter } },
+      //   populate: { parent: true },
+      // };
 
       // Fetch the nodes data with parent relations populated
       const nodes = await strapi.entityService.findMany(
