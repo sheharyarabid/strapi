@@ -227,5 +227,63 @@ module.exports = {
       ctx.body = { error: "Failed to fetch data" };
     }
   },
-  
+  async dropdown(ctx) {
+    const { id: nodeId } = ctx.query;
+
+    try {
+      if (!nodeId) {
+        return ctx.badRequest('Missing required parameter: id');
+      }
+
+      // Fetch the node for which we want to get valid parents
+      const node = await strapi.entityService.findOne('api::tree.tree', nodeId, {
+        populate: { parent: true },
+      });
+
+      if (!node) {
+        return ctx.badRequest('Node does not exist');
+      }
+
+      // Fetch all descendants of the current node
+      const descendants = await getDescendants(nodeId);
+
+      // Fetch all available nodes
+      const allNodes = await strapi.entityService.findMany('api::tree.tree', {
+        populate: { parent: true },
+      });
+
+      // Filter out the current node, its parent, and its descendants
+      const validParents = allNodes.filter(
+        (n) => n.id !== node.id && n.id !== node.parent?.id && !descendants.includes(n.id)
+      );
+
+      // Remove unwanted fields (parent, createdAt, updatedAt, publishedAt)
+      const response = validParents.map((node) => {
+        const { id, node: nodeName } = node; // Keep only 'id' and 'node' fields
+        return { id, node: nodeName };
+      });
+
+      return ctx.send({ validParents: response });
+    } catch (error) {
+      // Log error details
+      strapi.log.error('Error in dropdown API:', error.message, error.stack);
+      ctx.status = 500;
+      return ctx.send({ error: 'Failed to fetch valid parents', details: error.message });
+    }
+  },
 };
+
+async function getDescendants(parentId) {
+  const children = await strapi.entityService.findMany('api::tree.tree', {
+    filters: { parent: parentId }
+  });
+
+  let descendants = [];
+  for (const child of children) {
+    descendants.push(child.id);
+    const childDescendants = await getDescendants(child.id);
+    descendants = descendants.concat(childDescendants);
+  }
+
+  return descendants;
+}

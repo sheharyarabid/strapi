@@ -14,6 +14,15 @@ module.exports = {
         policies: [],
         middlewares: [],
       },
+    },
+    {
+      method: 'GET',
+      path: '/tree/dropdown',
+      handler: 'custom-api.dropdown',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
     },    
     // {
     //   method: 'GET',
